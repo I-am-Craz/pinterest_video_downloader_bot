@@ -39,7 +39,7 @@ public class CommandsHandler extends TelegramLongPollingCommandBot {
         SendMessage messageSender = new SendMessage();
         SendVideo videoSender = new SendVideo();
 
-        if(userMessage.startsWith("https://www.pinterest.com/pin/")){
+        if(userMessage.startsWith("https://www.pinterest.com/pin/") || userMessage.startsWith("https://pin.it/")){
             sendMessageToUser(messageSender, "Подождите, пожалуйста.", chatId);
             InputFile video = Downloader.download(userMessage);
             if(video != null){
