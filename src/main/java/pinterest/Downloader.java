@@ -9,16 +9,24 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 
-public class Downloader {
-
+public class Downloader{
+    private static Downloader instance;
     public static final String URL_FOR_PINTEREST_VIDEO_DOWNLOADING_WEBSITE = "https://www.expertstool.com/download-pinterest-video/";
 
-    public static InputFile download(String url){
+    private Downloader(){}
+
+    public static Downloader getInstance(){
+        if(instance == null){
+            instance = new Downloader();
+        }
+        return instance;
+    }
+
+    public InputFile download(String url){
 
         InputFile inputFile = null;
 
         try {
-            // a website for downloading video from pinterest
             Connection.Response  response =  Jsoup.connect(URL_FOR_PINTEREST_VIDEO_DOWNLOADING_WEBSITE)
                     .method(Connection.Method.POST)
                     .data("url", url)

@@ -5,19 +5,32 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import pinterest.Downloader;
 import telegram.commands.HelpCommand;
 import telegram.commands.StartCommand;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CommandsHandler extends TelegramLongPollingCommandBot {
 
+    private static final String PINTEREST_LONG_LINK = "https://www.pinterest.com/pin/";
+    private static final String PINTEREST_SHORT_LINK = "https://pin.it/";
     public static final String BOT_NAME = "AnotheR_VideO_DownloadeR_Bot";
+    private List<BotCommand> commands = new ArrayList<>();
+
+    {
+        commands.add(new StartCommand());
+        commands.add(new HelpCommand());
+    }
 
     public CommandsHandler(){
 
-        register(new StartCommand());
-        register(new HelpCommand());
+        for(BotCommand command : commands){
+            register(command);
+        }
 
         registerDefaultAction((absSender, message) -> {
             SendMessage sender = new SendMessage();
@@ -25,9 +38,7 @@ public class CommandsHandler extends TelegramLongPollingCommandBot {
             sender.setText("Команда '" + message.getText() + "' не известна этому боту. Используйте команду /help, чтобы получить помощь.");
             try {
                 absSender.execute(sender);
-            } catch (TelegramApiException e) {
-
-            }
+            } catch (TelegramApiException e) {}
         });
     }
 
@@ -39,9 +50,9 @@ public class CommandsHandler extends TelegramLongPollingCommandBot {
         SendMessage messageSender = new SendMessage();
         SendVideo videoSender = new SendVideo();
 
-        if(userMessage.startsWith("https://www.pinterest.com/pin/") || userMessage.startsWith("https://pin.it/")){
+        if(userMessage.startsWith(PINTEREST_LONG_LINK) || userMessage.startsWith(PINTEREST_SHORT_LINK)){
             sendMessageToUser(messageSender, "Подождите, пожалуйста.", chatId);
-            InputFile video = Downloader.download(userMessage);
+            InputFile video = Downloader.getInstance().download(userMessage);
             if(video != null){
                 sendMessageToUser(videoSender, video, chatId);
             } else {
@@ -52,7 +63,7 @@ public class CommandsHandler extends TelegramLongPollingCommandBot {
         }
     }
 
-    public void sendMessageToUser(SendMessage messageSender, String message, String id){
+    public synchronized void sendMessageToUser(SendMessage messageSender, String message, String id){
         messageSender.setChatId(id);
         messageSender.setText(message);
         try{
@@ -62,7 +73,7 @@ public class CommandsHandler extends TelegramLongPollingCommandBot {
         }
     }
 
-    public void sendMessageToUser(SendVideo videoSender, InputFile video, String id){
+    public synchronized void sendMessageToUser(SendVideo videoSender, InputFile video, String id){
         videoSender.setChatId(id);
         videoSender.setVideo(video);
         try{
